@@ -1,0 +1,26 @@
+version: "3.9"
+services: 
+  cloud:
+    image: nextcloud
+    restart: unless-stopped
+    depends_on:
+      - "db"
+    volumes:
+      - "./data:/var/www/html"
+    environment:
+      - "POSTGRES_HOST=db"
+      - "POSTGRES_DB=${POSTGRES_DB}"
+      - "POSTGRES_USER=${POSTGRES_USER}"
+      - "POSTGRES_PASSWORD=${POSTGRES_PASSWORD}"
+    ports:
+      - "80:80"
+  db:
+    image: postgres:14
+    restart: unless-stopped
+    volumes:
+      - "./db-data:/var/lib/postgresql/data"
+    environment:
+      - "POSTGRES_HOST=db"
+      - "POSTGRES_DB=${POSTGRES_DB}"
+      - "POSTGRES_USER=${POSTGRES_USER}"
+      - "POSTGRES_PASSWORD=${POSTGRES_PASSWORD}"

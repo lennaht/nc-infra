@@ -1,4 +1,6 @@
 id_rsa*
-.terraform*
+terraform/.terraform*
 plan
-terraform*
+terraform/terraform*
+.env
+inventory.ini
