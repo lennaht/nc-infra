@@ -1,0 +1,64 @@
+- hosts: all
+  vars:
+    - nextcloud_dir: '/srv/nextcloud'
+  tasks:
+    - name: Install aptitude
+      apt:
+        name: aptitude
+        state: latest
+        update_cache: true
+    - name: Install required system packages
+      apt:
+        pkg:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - software-properties-common
+          - python3-pip
+          - virtualenv
+          - python3-setuptools
+        state: latest
+        update_cache: true
+
+    - name: Add Docker GPG apt Key
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+
+    - name: Add Docker Repository
+      apt_repository:
+        repo: deb https://download.docker.com/linux/ubuntu focal stable
+        state: present
+
+    - name: Update apt and install docker-ce
+      apt:
+        name: docker-ce
+        state: latest
+        update_cache: true
+
+    - name: Uninstall old Docker Module for Python
+      pip:
+        name: docker, docker-py, docker-compose
+        state: absent
+    - name: Install docker-compose for Python
+      pip:
+        name: docker-compose
+    - name: Pull this repo containing the docker-compose files
+      git:
+        repo: https://github.com/lennaht/nc-infra.git
+        dest: /tmp/nc-infra
+    - name: Copy docker-compose files to /srv
+      copy:
+        src: '/tmp/nc-infra/docker-compose/'
+        remote_src: true
+        dest: '{{ nextcloud_dir  }}'
+    - name: Copy .env file for compose setup from host machine
+      copy:
+        src: '{{ playbook_dir }}/.env'
+        dest: '{{ nextcloud_dir  }}/.env'
+    - name: Create and start docker-compose setup
+      community.docker.docker_compose:
+        project_src: '{{ nextcloud_dir }}'
+        env_file: '{{ nextcloud_dir }}/.env'
+        pull: true
+        state: present
